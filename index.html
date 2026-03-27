@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LX XITERS</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
+<style>
+.password-rules{
+  margin-top:6px;
+  margin-bottom:12px;
+  font-size:11px;
+  color:#777;
+  line-height:1.5;
+}
+
+.password-rules .ok{
+  color:#22c55e;
+}
+
+.password-rules .bad{
+  color:#ff4d4f;
+}
+.input input.error{
+  border:1px solid #ff4d4f;
+  box-shadow:0 0 0 3px rgba(255,77,79,.12);
+}
+
+.field-error{
+  display:none;
+  margin-top:2px;
+  margin-bottom:8px;
+  color:#ff4d4f;
+  font-size:11px;
+  font-weight:600;
+}
+
+.field-error.show{
+  display:block;
+}
+.field-title{
+  display:block;
+  margin-bottom:8px;
+  color:#fff;
+  font-size:14px;
+  font-weight:700;
+}
+
+.field-help{
+  margin-top:6px;
+  margin-bottom:16px;
+  color:#777;
+  font-size:11px;
+  line-height:1.4;
+}
+#loginCard{
+  scroll-margin-top: 500px;
+}
+.info-buttons{
+  display:flex;
+  flex-direction:column;
+  align-items:center; /* 👈 CENTRA TODO */
+  gap:12px;
+  margin-top:20px;
+}
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial,sans-serif;
+}
+
+#tsparticles{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:0;
+  pointer-events:none;
+}
+
+body{
+  position:relative;
+  min-height:100vh;
+  background:
+    radial-gradient(circle at top left, rgba(255,215,0,.08), transparent 25%),
+    radial-gradient(circle at bottom right, rgba(255,215,0,.05), transparent 25%),
+    linear-gradient(180deg,#000,#0a0a0a);
+  padding:20px;
+  color:#fff;
+  overflow-x:hidden;
+  overflow-y:auto;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  top:-200px;
+  left:-200px;
+  width:500px;
+  height:500px;
+  background:radial-gradient(circle, rgba(255,215,0,0.08), transparent 70%);
+  filter:blur(120px);
+  animation:moveGlow 8s ease-in-out infinite;
+  z-index:0;
+  pointer-events:none;
+}
+
+@keyframes moveGlow{
+  0%{ transform:translate(0,0); }
+  50%{ transform:translate(80px,60px); }
+  100%{ transform:translate(0,0); }
+}
+
+.layout,
+.top-hero,
+.card,
+#toast{
+  position:relative;
+  z-index:1;
+}
+
+.layout{
+  width:100%;
+}
+
+/* HERO */
+.top-hero{
+  width:100%;
+  max-width:350px;
+  margin:0 auto 70px;
+  text-align:center;
+  animation:fadeIn 1s ease;
+}
+
+.hero-logo{
+  width:80px;
+  height:80px;
+  margin:0 auto 12px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#111;
+  box-shadow:
+    0 0 18px rgba(255,215,0,.18),
+    0 0 35px rgba(255,215,0,.08);
+  overflow:hidden;
+  padding:6px;
+}
+
+.hero-logo img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  object-position:center;
+  border-radius:50%;
+  display:block;
+}
+
+.top-hero h2{
+  font-family: 'Orbitron', sans-serif;
+  color:#FFD700;
+  font-size:35px;
+  letter-spacing:2px;
+  font-weight:800;
+
+  text-shadow:
+    0 0 6px #FFD700,
+    0 0 15px #FFD700,
+    0 0 30px rgba(255,215,0,0.6);
+
+  animation: glowText 2s ease-in-out infinite;
+}
+
+.hero-sub{
+  font-family: 'Orbitron', sans-serif;
+  font-size:10px;
+  letter-spacing:1.5px;
+  color:#bfbfbf;
+
+  margin-top:5px;   /* 👈 SEPARACIÓN ARRIBA */
+  margin-bottom:18px; /* 👈 SEPARACIÓN ABAJO */
+
+  text-shadow:
+    0 0 4px rgba(255,255,255,0.08);
+
+  opacity:.85;
+}
+
+/* BADGES */
+.hero-badges{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  margin-bottom:20px;
+}
+
+.badge-row{
+  display:flex;
+  gap:10px;
+}
+
+.badge{
+  background:#1a1a1a;
+  padding:6px 12px;
+  border-radius:12px;
+  font-size:12px;
+  color:#FFD700;
+  border:1px solid rgba(255,215,0,.25);
+  box-shadow:
+    0 0 8px rgba(255,215,0,.15),
+    inset 0 0 5px rgba(255,215,0,.05);
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.badge i{
+  color:#FFD700;
+  text-shadow:0 0 6px rgba(255,215,0,.6);
+}
+
+.badge-top{
+  padding:7px 14px;
+  font-weight:bold;
+}
+
+/* STATS */
+.hero-stats{
+  display:flex;
+  justify-content:space-around;
+  gap:10px;
+}
+
+.hero-stats div{
+  text-align:center;
+  min-width:80px;
+}
+
+.hero-stats i{
+  color:#FFD700;
+  font-size:18px;
+  margin-bottom:5px;
+}
+
+.hero-stats h3{
+  color:#fff;
+  font-size:18px;
+  margin-bottom:4px;
+}
+
+.hero-stats p{
+  color:#777;
+  font-size:12px;
+}
+
+/* CARD */
+.card{
+  width:100%;
+  max-width:300px;
+  margin:0 auto;
+  background:rgba(15,15,15,.97);
+  border-radius:26px;
+  padding:18px;
+  border:1px solid rgba(255,215,0,.18);
+  box-shadow:
+    0 0 25px rgba(255,215,0,.2),
+    0 0 60px rgba(255,215,0,.08),
+    inset 0 0 0 1px rgba(255,215,0,.08);
+  animation:cardIn .7s ease, glowMove 4s ease-in-out infinite;
+}
+
+@keyframes glowMove{
+  0%{
+    box-shadow:
+      0 0 25px rgba(255,215,0,.2),
+      0 0 60px rgba(255,215,0,.08),
+      inset 0 0 0 1px rgba(255,215,0,.08);
+  }
+  50%{
+    box-shadow:
+      0 0 40px rgba(255,215,0,.35),
+      0 0 80px rgba(255,215,0,.15),
+      inset 0 0 0 1px rgba(255,215,0,.15);
+  }
+  100%{
+    box-shadow:
+      0 0 25px rgba(255,215,0,.2),
+      0 0 60px rgba(255,215,0,.08),
+      inset 0 0 0 1px rgba(255,215,0,.08);
+  }
+}
+
+@keyframes cardIn{
+  from{
+    opacity:0;
+    transform:translateY(24px) scale(.97);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+}
+
+.logo{
+  width:78px;
+  height:78px;
+  margin:0 auto 16px;
+  border-radius:22px;
+  background:linear-gradient(180deg,#151515,#0c0c0c);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:
+    0 0 20px rgba(255,215,0,.18),
+    0 0 35px rgba(255,215,0,.08),
+    inset 0 0 12px rgba(255,215,0,.05);
+  animation:logoFloat 3s ease-in-out infinite;
+}
+
+@keyframes logoFloat{
+  0%{ transform:translateY(0) scale(1); }
+  50%{ transform:translateY(-6px) scale(1.03); }
+  100%{ transform:translateY(0) scale(1); }
+}
+
+.logo i{
+  color:#FFD700;
+  font-size:30px;
+  text-shadow:0 0 12px rgba(255,215,0,.35);
+}
+
+h1{
+  font-family: 'Orbitron', sans-serif;
+  text-align:center;
+  color:#FFD700;
+  font-size:33px;
+  font-weight:800;
+  letter-spacing:2px;
+
+  text-shadow:
+    0 0 5px #FFD700,
+    0 0 10px #FFD700,
+    0 0 20px rgba(255,215,0,0.6);
+
+  animation: glowText 2s ease-in-out infinite;
+}
+
+.sub{
+  font-family: 'Orbitron', sans-serif;
+  text-align:center;
+  font-size:10px;
+  letter-spacing:1.5px;
+  color:#bfbfbf;
+
+  margin-top:4px;   /* 👈 SEPARACIÓN */
+  margin-bottom:20px;
+
+  text-shadow:
+    0 0 4px rgba(255,255,255,0.08);
+
+  opacity:.85;
+}
+
+.tabs{
+  display:flex;
+  gap:6px;
+  background:#1a1a1a;
+  border-radius:16px;
+  padding:6px;
+  margin-bottom:20px;
+}
+
+.tab{
+  flex:1;
+  height:42px;
+  border:none;
+  border-radius:10px;
+  background:transparent;
+  color:#aaa;
+  font-weight:700;
+  font-size:13px;
+  transition:.25s ease;
+  cursor:pointer;
+}
+
+.tab.active{
+  background:linear-gradient(90deg,#FFD700,#FFC300);
+  color:#000;
+  box-shadow:
+    0 0 12px rgba(255,215,0,.18),
+    0 0 24px rgba(255,215,0,.08);
+}
+
+.tab:hover{
+  box-shadow:0 0 14px rgba(255,215,0,.08);
+}
+
+.panel{
+  display:none;
+}
+
+.panel.active{
+  display:block;
+  animation:fadeIn .3s ease;
+}
+
+@keyframes fadeIn{
+  from{
+    opacity:0;
+    transform:translateY(10px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+.input{
+  position:relative;
+  margin-bottom:16px;
+}
+
+.input input{
+  width:100%;
+  height:44px;
+  border:none;
+  outline:none;
+  border-radius:14px;
+  background:#1a1a1a;
+  color:#fff;
+  font-size:13px;
+  padding-left:40px;
+  padding-right:40px;
+  border:1px solid transparent;
+  transition:.25s ease;
+}
+
+.input input::placeholder{
+  color:#7f7f7f;
+}
+
+.input input:focus{
+  border:1px solid rgba(255,215,0,.35);
+  box-shadow:
+    0 0 0 3px rgba(255,215,0,.08),
+    0 0 16px rgba(255,215,0,.08);
+}
+
+.left-icon{
+  position:absolute;
+  left:14px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#FFD700;
+  font-size:18px;
+  pointer-events:none;
+}
+
+.eye-btn{
+  position:absolute;
+  right:14px;
+  top:50%;
+  transform:translateY(-50%);
+  width:22px;
+  height:22px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  color:#9f9f9f;
+  transition:.2s;
+}
+
+.eye-btn:hover{
+  color:#FFD700;
+}
+
+.btn{
+  width:100%;
+  height:45px;
+  border:none;
+  border-radius:14px;
+  background:linear-gradient(90deg,#FFD700,#FFC300);
+  color:#000;
+  font-weight:800;
+  font-size:14px;
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+  box-shadow:
+    0 0 14px rgba(255,215,0,.25),
+    0 0 30px rgba(255,215,0,.15),
+    0 10px 20px rgba(255,215,0,.12);
+  animation:glowBtn 3s ease-in-out infinite;
+  transition:.25s ease;
+}
+
+@keyframes glowBtn{
+  0%{
+    box-shadow:
+      0 0 14px rgba(255,215,0,.25),
+      0 0 30px rgba(255,215,0,.15),
+      0 10px 20px rgba(255,215,0,.12);
+  }
+  50%{
+    box-shadow:
+      0 0 25px rgba(255,215,0,.4),
+      0 0 50px rgba(255,215,0,.2),
+      0 12px 25px rgba(255,215,0,.2);
+  }
+  100%{
+    box-shadow:
+      0 0 14px rgba(255,215,0,.25),
+      0 0 30px rgba(255,215,0,.15),
+      0 10px 20px rgba(255,215,0,.12);
+  }
+}
+
+.btn::after{
+  content:"";
+  position:absolute;
+  top:0;
+  left:-100%;
+  width:100%;
+  height:100%;
+  background:linear-gradient(120deg, transparent, rgba(255,255,255,.35), transparent);
+  transition:.6s;
+}
+
+.btn:hover::after{
+  left:100%;
+}
+
+.btn:hover{
+  transform:translateY(-1px);
+}
+
+.btn:active{
+  transform:scale(.985);
+}
+
+.forgot{
+  margin-top:12px;
+  text-align:center;
+}
+
+.forgot a{
+  font-size:13px;
+  color:#FFD700;
+  text-decoration:none;
+  opacity:.85;
+  transition:.25s;
+}
+
+.forgot a:hover{
+  opacity:1;
+  text-shadow:0 0 8px rgba(255,215,0,.7);
+}
+
+/* TOAST */
+#toast{
+  position:fixed;
+  top:18px;
+  right:18px;
+  min-width:220px;
+  max-width:320px;
+  padding:14px 16px;
+  border-radius:14px;
+  background:rgba(17,17,17,.97);
+  color:#FFD700;
+  border:1px solid rgba(255,215,0,.28);
+  box-shadow:
+    0 0 16px rgba(255,215,0,.18),
+    0 0 30px rgba(255,215,0,.08);
+  font-size:14px;
+  font-weight:700;
+  z-index:9999;
+  opacity:0;
+  transform:translateX(60px);
+  pointer-events:none;
+}
+
+#toast.show{
+  animation:toastInOut 3.2s ease forwards;
+}
+
+@keyframes toastInOut{
+  0%{
+    opacity:0;
+    transform:translateX(60px);
+  }
+  12%{
+    opacity:1;
+    transform:translateX(0);
+  }
+  82%{
+    opacity:1;
+    transform:translateX(0);
+  }
+  100%{
+    opacity:0;
+    transform:translateX(40px);
+  }
+}
+
+/* PC */
+@media (min-width:900px){
+  body{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+  }
+
+  .layout{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    max-width:1100px;
+    width:100%;
+    gap:80px;
+    min-height:100vh;
+  }
+
+  .top-hero{
+    flex:1;
+    max-width:500px;
+    text-align:left;
+    margin:0;
+  }
+
+  .hero-logo{
+    width:110px;
+    height:110px;
+    margin:0 0 18px 0;
+  }
+
+  .hero-logo img{
+    width:100%;
+    height:100%;
+  }
+
+  .top-hero h2{
+    font-size:34px;
+    margin-bottom:10px;
+  }
+
+  .hero-sub{
+    font-size:20px;
+    margin-bottom:24px;
+    line-height:1.5;
+  }
+
+  .hero-badges{
+    align-items:flex-start;
+    margin-bottom:28px;
+  }
+
+  .badge-row{
+    gap:12px;
+  }
+
+  .badge{
+    padding:10px 16px;
+    font-size:14px;
+    border-radius:14px;
+  }
+
+  .hero-stats{
+    justify-content:flex-start;
+    gap:40px;
+  }
+
+  .hero-stats i{
+    font-size:22px;
+    margin-bottom:8px;
+  }
+
+  .hero-stats h3{
+    font-size:34px;
+  }
+
+  .hero-stats p{
+    font-size:14px;
+    letter-spacing:.5px;
+  }
+
+  .card{
+    flex:1;
+    max-width:420px;
+    padding:28px;
+    transform:scale(1.1);
+  }
+
+  .logo{
+    width:86px;
+    height:86px;
+    margin:0 auto 18px;
+  }
+
+  h1{
+    font-size:34px;
+    margin-bottom:8px;
+  }
+
+  .sub{
+    font-size:16px;
+    margin-bottom:24px;
+  }
+
+  .tabs{
+    padding:7px;
+    gap:7px;
+    margin-bottom:24px;
+  }
+
+  .tab{
+    height:50px;
+    font-size:15px;
+    border-radius:14px;
+  }
+
+  .input input{
+    height:54px;
+    font-size:15px;
+    border-radius:16px;
+    padding-left:48px;
+    padding-right:48px;
+  }
+
+  .btn{
+    height:54px;
+    font-size:16px;
+    border-radius:16px;
+  }
+}
+@keyframes glowText{
+  0%{
+    text-shadow:
+      0 0 5px #FFD700,
+      0 0 10px #FFD700,
+      0 0 20px rgba(255,215,0,0.6);
+  }
+  50%{
+    text-shadow:
+      0 0 10px #FFD700,
+      0 0 25px #FFD700,
+      0 0 40px rgba(255,215,0,0.9);
+  }
+  100%{
+    text-shadow:
+      0 0 5px #FFD700,
+      0 0 10px #FFD700,
+      0 0 20px rgba(255,215,0,0.6);
+  }
+}
+.info-box{
+  margin-top:35px; /* 🔥 MÁS SEPARACIÓN */
+  padding-top:25px;
+  border-top:1px solid rgba(255,215,0,.15);
+}
+
+.info-stats{
+  display:flex;
+  justify-content:space-between;
+  text-align:center;
+  margin-bottom:20px;
+}
+
+.info-stats h3{
+  color:#FFD700;
+  font-size:16px;
+  text-shadow:0 0 8px rgba(255,215,0,.4);
+}
+
+.info-stats p{
+  color:#aaa;
+  font-size:12px;
+}
+
+.info-buttons{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+...info-buttons{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-top:20px;
+}
+
+.info-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+
+  width:auto;
+
+  padding:10px 18px;
+  border-radius:999px;
+
+  /* 🔥 DORADO SUAVE (NO CHILLÓN) */
+  background:linear-gradient(145deg,#3a2d00,#6b5200);
+
+  border:1px solid rgba(255,215,0,.5);
+
+  color:#FFD700; /* texto dorado */
+  font-size:13px;
+  font-weight:600;
+
+  box-shadow:
+    0 0 10px rgba(255,215,0,.3);
+
+  transition:.3s;
+}
+
+.info-btn i{
+  color:#FFD700;
+}
+
+/* 🔥 HOVER MÁS PRO */
+.info-btn:hover{
+  background:linear-gradient(145deg,#5a4400,#8a6a00);
+
+  box-shadow:
+    0 0 18px rgba(255,215,0,.7),
+    0 0 30px rgba(255,215,0,.3);
+
+  transform:scale(1.05);
+}
+.info-box{
+  max-width:420px;
+  margin:120px auto 60px;
+  padding:28px;
+  border-radius:22px;
+
+  background:rgba(10,10,10,.9);
+  border:1px solid rgba(255,255,255,.05);
+
+  box-shadow:none; /* ❌ SIN GLOW */
+}
+</style>
+</head>
+<body>
+
+<div id="tsparticles"></div>
+<div id="toast"></div>
+
+<div class="layout">
+  <div class="top-hero">
+    <div class="hero-logo">
+      <img src="https://i.imgur.com/pinFJ1F.jpeg" alt="LX XITERS">
+    </div>
+
+    <h2>LX XITERS</h2>
+    <p class="hero-sub">Sistema premium seguro</p>
+
+    <div class="hero-badges">
+      <div class="badge badge-top">
+        <i class="fa-solid fa-bolt"></i> Ultra Rápido
+      </div>
+      <div class="badge-row">
+        <div class="badge">
+          <i class="fa-solid fa-shield-halved"></i> Ultra Seguro
+        </div>
+        <div class="badge">
+          <i class="fa-solid fa-gem"></i> Premium
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-stats">
+      <div>
+        <i class="fa-solid fa-users"></i>
+        <h3>100+</h3>
+        <p>Usuarios</p>
+      </div>
+      <div>
+        <i class="fa-solid fa-key"></i>
+        <h3>1K+</h3>
+        <p>Keys</p>
+      </div>
+      <div>
+        <i class="fa-solid fa-server"></i>
+        <h3>99.9%</h3>
+        <p>Uptime</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="loginCard">
+  <div class="logo">
+    <i class="fa-solid fa-shield"></i>
+  </div>
+
+  <h1>LX XITERS</h1>
+  <div class="sub">Sistema premium seguro</div>
+
+  <div class="tabs">
+    <button class="tab active" id="loginTab" type="button">Login</button>
+    <button class="tab" id="regTab" type="button">Registro</button>
+  </div>
+
+  <div class="panel active" id="loginPanel">
+  <label class="field-title">Usuario</label>
+  <div class="input">
+    <i class="fa-solid fa-user left-icon"></i>
+    <input id="loginUser" placeholder="Ingresa tu usuario">
+  </div>
+
+  <label class="field-title">Contraseña</label>
+  <div class="input">
+    <i class="fa-solid fa-lock left-icon"></i>
+    <input type="password" id="loginPass" placeholder="Ingresa tu contraseña">
+    <span class="eye-btn" onclick="togglePassword('loginPass', this)">
+      <i class="fa-solid fa-eye"></i>
+    </span>
+  </div>
+
+  <button class="btn" onclick="login()">Entrar</button>
+
+  <div class="forgot">
+    <a href="#" onclick="openRecovery()">¿Olvidaste tu contraseña?</a>
+  </div>
+</div>
+
+  <div class="panel" id="regPanel">
+  <label class="field-title">Nombre de usuario</label>
+  <div class="input">
+    <i class="fa-solid fa-user left-icon"></i>
+    <input id="regUser" placeholder="usuario123">
+  </div>
+  <div class="field-help">Solo letras, números y guiones bajos</div>
+
+  <label class="field-title">Correo electrónico</label>
+  <div class="input">
+    <i class="fa-solid fa-envelope left-icon"></i>
+    <input id="regEmail" type="email" placeholder="usuario@ejemplo.com">
+  </div>
+
+  <label class="field-title">Contraseña</label>
+  <div class="input">
+    <i class="fa-solid fa-lock left-icon"></i>
+    <input type="password" id="regPass" placeholder="Mínimo 6 caracteres">
+    <span class="eye-btn" onclick="togglePassword('regPass', this)">
+      <i class="fa-solid fa-eye"></i>
+    </span>
+  </div>
+  <div class="password-rules" id="regPassRules">
+  <div id="ruleLength" class="bad">• Mínimo 6 caracteres</div>
+  <div id="ruleUpper" class="bad">• Al menos 1 mayúscula</div>
+  <div id="ruleNumber" class="bad">• Al menos 1 número</div>
+</div>
+  <div class="field-error" id="regPassError">Las contraseñas no son iguales</div>
+
+  <label class="field-title">Confirmar contraseña</label>
+  <div class="input">
+    <i class="fa-solid fa-lock left-icon"></i>
+    <input type="password" id="regPass2" placeholder="Repite tu contraseña">
+    <span class="eye-btn" onclick="togglePassword('regPass2', this)">
+      <i class="fa-solid fa-eye"></i>
+    </span>
+  </div>
+  <div class="field-error" id="newPassError">Las contraseñas no son iguales</div>
+
+  <button class="btn" onclick="sendCode()">Enviar código</button>
+
+  <label class="field-title" style="margin-top:14px;">Código</label>
+  <div class="input">
+    <i class="fa-solid fa-key left-icon"></i>
+    <input id="regCode" placeholder="Ingresa el código">
+  </div>
+
+  <button class="btn" onclick="verifyCode()">Confirmar</button>
+</div>
+
+  <div class="panel" id="recoveryPanel">
+  <label class="field-title">Correo electrónico</label>
+  <div class="input">
+    <i class="fa-solid fa-envelope left-icon"></i>
+    <input id="recEmail" placeholder="usuario@ejemplo.com">
+  </div>
+
+  <button class="btn" onclick="sendRecovery()">Enviar código</button>
+
+  <label class="field-title" style="margin-top:14px;">Código</label>
+  <div class="input">
+    <i class="fa-solid fa-key left-icon"></i>
+    <input id="recCode" placeholder="Ingresa el código">
+  </div>
+
+  <label class="field-title">Nueva contraseña</label>
+  <div class="input">
+    <i class="fa-solid fa-lock left-icon"></i>
+    <input type="password" id="newPass" placeholder="Nueva contraseña">
+    <span class="eye-btn" onclick="togglePassword('newPass', this)">
+      <i class="fa-solid fa-eye"></i>
+    </span>
+  </div>
+  <div class="password-rules" id="newPassRules">
+  <div id="newRuleLength" class="bad">• Mínimo 6 caracteres</div>
+  <div id="newRuleUpper" class="bad">• Al menos 1 mayúscula</div>
+  <div id="newRuleNumber" class="bad">• Al menos 1 número</div>
+</div>
+
+  <label class="field-title">Confirmar contraseña</label>
+  <div class="input">
+    <i class="fa-solid fa-lock left-icon"></i>
+    <input type="password" id="newPass2" placeholder="Repite la contraseña">
+    <span class="eye-btn" onclick="togglePassword('newPass2', this)">
+      <i class="fa-solid fa-eye"></i>
+    </span>
+  </div>
+
+  <button class="btn" onclick="resetPass()">Cambiar contraseña</button>
+
+  <div class="forgot">
+    <a href="#" onclick="backToLogin()">Volver al login</a>
+  </div>
+</div>
+</div>
+
+<div class="info-box">
+  <div class="info-stats">
+    <div>
+      <h3>100+</h3>
+      <p>Productos</p>
+    </div>
+    <div>
+      <h3>500+</h3>
+      <p>Clientes</p>
+    </div>
+    <div>
+      <h3>24/7</h3>
+      <p>Soporte</p>
+    </div>
+  </div>
+
+  <div class="info-buttons">
+    <div class="info-btn"><i class="fa-solid fa-shield-halved"></i> Seguro SSL</div>
+    <div class="info-btn"><i class="fa-solid fa-credit-card"></i> Pagos Seguros</div>
+    <div class="info-btn"><i class="fa-solid fa-bolt"></i> Entrega Inmediata</div>
+  </div>
+</div>
+
+<script>
+function updateNewPasswordRules(){
+  const pass = document.getElementById("newPass").value;
+  const rules = validateStrongPassword(pass);
+
+  document.getElementById("newRuleLength").className = rules.length ? "ok" : "bad";
+  document.getElementById("newRuleUpper").className = rules.upper ? "ok" : "bad";
+  document.getElementById("newRuleNumber").className = rules.number ? "ok" : "bad";
+}
+document.getElementById("regPass").addEventListener("input", updatePasswordRules);
+function validateStrongPassword(password){
+  return {
+    length: password.length >= 6,
+    upper: /[A-Z]/.test(password),
+    number: /[0-9]/.test(password)
+  };
+}
+document.getElementById("newPass").addEventListener("input", updateNewPasswordRules);
+function updatePasswordRules(){
+  const pass = document.getElementById("regPass").value;
+  const rules = validateStrongPassword(pass);
+
+  document.getElementById("ruleLength").className = rules.length ? "ok" : "bad";
+  document.getElementById("ruleUpper").className = rules.upper ? "ok" : "bad";
+  document.getElementById("ruleNumber").className = rules.number ? "ok" : "bad";
+}
+function validatePasswords(passId, confirmId, errorId){
+  const pass = document.getElementById(passId);
+  const confirm = document.getElementById(confirmId);
+  const error = document.getElementById(errorId);
+
+  function check(){
+    const p1 = pass.value.trim();
+    const p2 = confirm.value.trim();
+
+    if(!p1 || !p2){
+      pass.classList.remove("error");
+      confirm.classList.remove("error");
+      error.classList.remove("show");
+      return;
+    }
+
+    if(p1 !== p2){
+      pass.classList.add("error");
+      confirm.classList.add("error");
+      error.classList.add("show");
+    }else{
+      pass.classList.remove("error");
+      confirm.classList.remove("error");
+      error.classList.remove("show");
+    }
+  }
+
+  pass.addEventListener("input", check);
+  confirm.addEventListener("input", check);
+}
+tsParticles.load("tsparticles", {
+  fullScreen: { enable: false },
+  background: { color: "transparent" },
+  particles: {
+    number: {
+      value: 70,
+      density: { enable: true, area: 800 }
+    },
+    color: {
+      value: ["#FFD700", "#FFC300", "#FFEA70"]
+    },
+    shape: {
+      type: "circle"
+    },
+    opacity: {
+      value: { min: 0.2, max: 0.6 }
+    },
+    size: {
+      value: { min: 0.5, max: 5 }
+    },
+    move: {
+      enable: true,
+      speed: 2,
+      direction: "none",
+      random: true,
+      straight: false,
+      outModes: { default: "out" }
+    }
+  },
+  detectRetina: true
+});
+
+const API = "http://localhost:3000";
+
+const loginTab = document.getElementById("loginTab");
+const regTab = document.getElementById("regTab");
+const loginPanel = document.getElementById("loginPanel");
+const regPanel = document.getElementById("regPanel");
+const recoveryPanel = document.getElementById("recoveryPanel");
+const toastBox = document.getElementById("toast");
+
+loginTab.onclick = () => {
+  loginTab.classList.add("active");
+  regTab.classList.remove("active");
+  loginPanel.classList.add("active");
+  regPanel.classList.remove("active");
+  recoveryPanel.classList.remove("active");
+  toast("Modo login");
+};
+
+regTab.onclick = () => {
+  regTab.classList.add("active");
+  loginTab.classList.remove("active");
+  regPanel.classList.add("active");
+  loginPanel.classList.remove("active");
+  recoveryPanel.classList.remove("active");
+  toast("Modo registro");
+};
+
+function backToLogin(){
+  loginTab.click();
+}
+
+function openRecovery(){
+  loginTab.classList.remove("active");
+  regTab.classList.remove("active");
+  loginPanel.classList.remove("active");
+  regPanel.classList.remove("active");
+  recoveryPanel.classList.add("active");
+  toast("Recuperar contraseña");
+}
+
+function toast(text){
+  toastBox.innerText = text;
+  toastBox.classList.remove("show");
+  void toastBox.offsetWidth;
+  toastBox.classList.add("show");
+}
+
+function togglePassword(id, el){
+  const input = document.getElementById(id);
+  const icon = el.querySelector("i");
+
+  if(input.type === "password"){
+    input.type = "text";
+    icon.classList.remove("fa-eye");
+    icon.classList.add("fa-eye-slash");
+  } else {
+    input.type = "password";
+    icon.classList.remove("fa-eye-slash");
+    icon.classList.add("fa-eye");
+  }
+}
+
+async function sendCode(){
+  try{
+    const username = document.getElementById("regUser").value.trim();
+    const password = document.getElementById("regPass").value.trim();
+    const confirm = document.getElementById("regPass2").value.trim();
+    const email = document.getElementById("regEmail").value.trim();
+    const strong = validateStrongPassword(password);
+
+if(!strong.length || !strong.upper || !strong.number){
+  toast("La contraseña debe tener 6 caracteres, 1 mayúscula y 1 número");
+  document.getElementById("regPass").classList.add("error");
+  return;
+}
+
+    if(!username || !password || !confirm || !email){
+      toast("Completa todos los campos");
+      return;
+    }
+
+    if(password !== confirm){
+  document.getElementById("regPass").classList.add("error");
+  document.getElementById("regPass2").classList.add("error");
+  document.getElementById("regPassError").classList.add("show");
+  toast("Las contraseñas no coinciden ❌");
+  return;
+}
+
+    toast("Enviando código...");
+
+    const r = await fetch(API + "/register/send-code", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ username, email, password })
+    });
+
+    const d = await r.json();
+    toast(d.message || "Respuesta recibida");
+  }catch(e){
+    toast("Error conectando con el servidor");
+  }
+}
+
+async function verifyCode(){
+  try{
+    const email = document.getElementById("regEmail").value.trim();
+    const code = document.getElementById("regCode").value.trim();
+
+    if(!email || !code){
+      toast("Completa correo y código");
+      return;
+    }
+
+    toast("Verificando código...");
+
+    const r = await fetch(API + "/register/verify", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ email, code })
+    });
+
+    const d = await r.json();
+    toast(d.message || "Respuesta recibida");
+
+    if(d.ok){
+      loginTab.click();
+      document.getElementById("loginUser").value =
+        document.getElementById("regUser").value.trim();
+    }
+  }catch(e){
+    toast("Error conectando con el servidor");
+  }
+}
+
+async function sendRecovery(){
+  const email = document.getElementById("recEmail").value.trim();
+
+  if(!email){
+    toast("Ingresa tu correo");
+    return;
+  }
+
+  try{
+    toast("Enviando código...");
+
+    const r = await fetch(API + "/recover/send", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ email })
+    });
+
+    const d = await r.json();
+    toast(d.message || "Código enviado");
+  }catch(e){
+    toast("Error conectando con el servidor");
+  }
+}
+
+async function resetPass(){
+  const email = document.getElementById("recEmail").value.trim();
+  const code = document.getElementById("recCode").value.trim();
+  const password = document.getElementById("newPass").value.trim();
+  const confirm = document.getElementById("newPass2").value.trim();
+const strong = validateStrongPassword(password);
+
+if(!strong.length || !strong.upper || !strong.number){
+  toast("La nueva contraseña debe tener 6 caracteres, 1 mayúscula y 1 número");
+  document.getElementById("newPass").classList.add("error");
+  return;
+}
+  if(!email || !code || !password || !confirm){
+    toast("Completa todos los campos");
+    return;
+  }
+
+  if(password !== confirm){
+  document.getElementById("newPass").classList.add("error");
+  document.getElementById("newPass2").classList.add("error");
+  document.getElementById("newPassError").classList.add("show");
+  toast("Las contraseñas no coinciden ❌");
+  return;
+}
+
+  try{
+    toast("Cambiando contraseña...");
+
+    const r = await fetch(API + "/recover/reset", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ email, code, password })
+    });
+
+    const d = await r.json();
+    toast(d.message || "Respuesta recibida");
+
+    if(d.ok){
+      backToLogin();
+    }
+  }catch(e){
+    toast("Error conectando con el servidor");
+  }
+}
+
+async function login(){
+  try{
+    const username = document.getElementById("loginUser").value.trim();
+    const password = document.getElementById("loginPass").value.trim();
+
+    if(!username || !password){
+      toast("Completa usuario y contraseña");
+      return;
+    }
+
+    toast("Iniciando sesión...");
+
+    const r = await fetch(API + "/login", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ username, password })
+    });
+
+    const d = await r.json();
+    toast(d.message || "Respuesta recibida");
+
+    if(d.ok){
+      setTimeout(() => {
+        alert("Bienvenido " + d.user.username);
+      }, 300);
+    }
+  }catch(e){
+    toast("Error conectando con el servidor");
+  }
+}
+validatePasswords("regPass", "regPass2", "regPassError");
+validatePasswords("newPass", "newPass2", "newPassError");
+</script>
+<script>
+window.addEventListener("load", () => {
+  const card = document.getElementById("loginCard");
+  if(card){
+    card.scrollIntoView({
+      behavior: "auto",
+      block: "start"
+    });
+  }
+
+  loginTab.classList.add("active");
+  regTab.classList.remove("active");
+  loginPanel.classList.add("active");
+  regPanel.classList.remove("active");
+  recoveryPanel.classList.remove("active");
+});
+</script>
+</body>
+</html>
