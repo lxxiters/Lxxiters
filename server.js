@@ -1,4 +1,4 @@
-const express = require("express");
+ñconst express = require("express");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
 const fs = require("fs");
@@ -47,6 +47,9 @@ function writeUsers(users) {
 const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
 
+console.log("EMAIL_USER:", EMAIL_USER || "NO");
+console.log("EMAIL_PASS:", EMAIL_PASS ? "OK" : "NO");
+
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
@@ -89,7 +92,7 @@ function buildMailTemplate(title, subtitle, code) {
 
 async function sendMailCode(to, subject, title, subtitle, code) {
   if (!EMAIL_USER || !EMAIL_PASS) {
-    throw new Error("Faltan EMAIL_USER o EMAIL_PASS en variables de entorno");
+    throw new Error("Faltan EMAIL_USER o EMAIL_PASS en Render");
   }
 
   return transporter.sendMail({
