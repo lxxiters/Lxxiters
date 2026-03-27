@@ -10,6 +10,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 
 app.get("/", (req, res) => {
@@ -22,23 +23,82 @@ const pendingRecovery = {};
 
 function readUsers() {
   try {
-    return JSON.parse(fs.readFileSync(USERS_FILE, "utf8") || "[]");
-  } catch {
+    if (!fs.existsSync(USERS_FILE)) {
+      fs.writeFileSync(USERS_FILE, "[]", "utf8");
+    }
+
+    const raw = fs.readFileSync(USERS_FILE, "utf8").trim();
+    return JSON.parse(raw || "[]");
+  } catch (error) {
+    console.log("READ USERS ERROR:", error);
     return [];
   }
 }
 
 function writeUsers(users) {
-  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+  try {
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), "utf8");
+  } catch (error) {
+    console.log("WRITE USERS ERROR:", error);
+    throw error;
+  }
 }
 
+const EMAIL_USER = process.env.EMAIL_USER;
+const EMAIL_PASS = process.env.EMAIL_PASS;
+
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
   auth: {
-    user: "cuentaoso66@gmail.com",
-    pass: "rtenrvokbwrumrnb"
+    user: EMAIL_USER,
+    pass: EMAIL_PASS
   }
 });
+
+transporter.verify((error) => {
+  if (error) {
+    console.log("SMTP ERROR:", error);
+  } else {
+    console.log("SMTP listo para enviar");
+  }
+});
+
+function generateCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+function buildMailTemplate(title, subtitle, code) {
+  return `
+  <div style="background:#050505;padding:30px;font-family:Arial,sans-serif;">
+    <div style="max-width:520px;margin:auto;background:#111;border-radius:24px;padding:30px;text-align:center;border:1px solid rgba(255,215,0,.18);">
+      <img src="https://i.imgur.com/pinFJ1F.jpeg"
+           alt="LX XITERS"
+           style="width:100px;height:100px;object-fit:contain;margin-bottom:20px;border-radius:50%;filter:drop-shadow(0 0 10px gold);">
+      <h1 style="color:#FFD700;font-size:32px;margin:0 0 10px 0;">LX XITERS</h1>
+      <p style="color:#ccc;font-size:16px;margin:0 0 18px 0;">${title}</p>
+      <div style="background:linear-gradient(90deg,#FFD700,#FFC300);color:#000;padding:15px 25px;border-radius:15px;font-size:32px;font-weight:bold;letter-spacing:6px;margin-top:15px;">
+        ${code}
+      </div>
+      <p style="color:#888;margin-top:18px;">${subtitle}</p>
+    </div>
+  </div>
+  `;
+}
+
+async function sendMailCode(to, subject, title, subtitle, code) {
+  if (!EMAIL_USER || !EMAIL_PASS) {
+    throw new Error("Faltan EMAIL_USER o EMAIL_PASS en variables de entorno");
+  }
+
+  return transporter.sendMail({
+    from: `"LX XITERS" <${EMAIL_USER}>`,
+    to,
+    subject,
+    html: buildMailTemplate(title, subtitle, code)
+  });
+}
 
 app.post("/register/send-code", async (req, res) => {
   try {
@@ -50,17 +110,21 @@ app.post("/register/send-code", async (req, res) => {
 
     const users = readUsers();
 
-    const existsUser = users.find(u => u.username === username);
+    const existsUser = users.find(
+      (u) => u.username.toLowerCase() === String(username).toLowerCase()
+    );
     if (existsUser) {
       return res.json({ ok: false, message: "Usuario ya existe" });
     }
 
-    const existsEmail = users.find(u => u.email === email);
+    const existsEmail = users.find(
+      (u) => u.email.toLowerCase() === String(email).toLowerCase()
+    );
     if (existsEmail) {
       return res.json({ ok: false, message: "Correo ya registrado" });
     }
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const code = generateCode();
     const hash = await bcrypt.hash(password, 10);
 
     pendingUsers[email] = {
@@ -68,82 +132,92 @@ app.post("/register/send-code", async (req, res) => {
       email,
       password: hash,
       code,
-      expires: Date.now() + 300000
+      expires: Date.now() + 5 * 60 * 1000
     };
 
-    await transporter.sendMail({
-      from: '"LX XITERS" <cuentaoso66@gmail.com>',
-      to: email,
-      subject: "LX XITERS - Código de verificación",
-      html: `
-      <div style="background:#050505;padding:30px;font-family:Arial;">
-        <div style="max-width:520px;margin:auto;background:#111;border-radius:24px;padding:30px;text-align:center;">
-          <img src="https://i.imgur.com/pinFJ1F.jpeg"
-               style="width:100px;height:100px;object-fit:contain;margin-bottom:20px;filter:drop-shadow(0 0 10px gold);">
-          <h1 style="color:#FFD700;font-size:32px;">LX XITERS</h1>
-          <p style="color:#ccc;">Código de verificación</p>
-          <div style="background:linear-gradient(90deg,#FFD700,#FFC300);color:#000;padding:15px 25px;border-radius:15px;font-size:32px;font-weight:bold;letter-spacing:6px;margin-top:15px;">
-            ${code}
-          </div>
-          <p style="color:#888;margin-top:15px;">Este código vence en 5 minutos</p>
-        </div>
-      </div>
-      `
-    });
+    await sendMailCode(
+      email,
+      "LX XITERS - Código de verificación",
+      "Código de verificación",
+      "Este código vence en 5 minutos",
+      code
+    );
 
-    res.json({ ok: true, message: "Código enviado al correo" });
-  } catch (e) {
-    console.log("REGISTER SEND ERROR:", e);
-    res.json({ ok: false, message: "Error al enviar correo" });
+    return res.json({ ok: true, message: "Código enviado al correo" });
+  } catch (error) {
+    console.log("REGISTER SEND ERROR:", error);
+    return res.json({ ok: false, message: "Error al enviar correo" });
   }
 });
 
 app.post("/register/verify", (req, res) => {
-  const { email, code } = req.body;
-  const data = pendingUsers[email];
+  try {
+    const { email, code } = req.body;
+    const data = pendingUsers[email];
 
-  if (!data) return res.json({ ok: false, message: "No hay registro" });
+    if (!data) {
+      return res.json({ ok: false, message: "No hay registro pendiente" });
+    }
 
-  if (Date.now() > data.expires) {
+    if (Date.now() > data.expires) {
+      delete pendingUsers[email];
+      return res.json({ ok: false, message: "Código expirado" });
+    }
+
+    if (data.code !== code) {
+      return res.json({ ok: false, message: "Código incorrecto" });
+    }
+
+    const users = readUsers();
+
+    users.push({
+      username: data.username,
+      email: data.email,
+      password: data.password
+    });
+
+    writeUsers(users);
     delete pendingUsers[email];
-    return res.json({ ok: false, message: "Código expirado" });
+
+    return res.json({ ok: true, message: "Cuenta creada correctamente" });
+  } catch (error) {
+    console.log("REGISTER VERIFY ERROR:", error);
+    return res.json({ ok: false, message: "Error al verificar código" });
   }
-
-  if (data.code !== code) {
-    return res.json({ ok: false, message: "Código incorrecto" });
-  }
-
-  const users = readUsers();
-
-  users.push({
-    username: data.username,
-    email: data.email,
-    password: data.password
-  });
-
-  writeUsers(users);
-  delete pendingUsers[email];
-
-  res.json({ ok: true, message: "Cuenta creada correctamente" });
 });
 
 app.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    const users = readUsers();
-    const user = users.find(u => u.username === username);
+    if (!username || !password) {
+      return res.json({ ok: false, message: "Faltan datos" });
+    }
 
-    if (!user) return res.json({ ok: false, message: "Usuario no existe" });
+    const users = readUsers();
+    const user = users.find((u) => u.username === username);
+
+    if (!user) {
+      return res.json({ ok: false, message: "Usuario no existe" });
+    }
 
     const ok = await bcrypt.compare(password, user.password);
 
-    if (!ok) return res.json({ ok: false, message: "Contraseña incorrecta" });
+    if (!ok) {
+      return res.json({ ok: false, message: "Contraseña incorrecta" });
+    }
 
-    res.json({ ok: true, message: "Bienvenido", user });
-  } catch (e) {
-    console.log("LOGIN ERROR:", e);
-    res.json({ ok: false, message: "Error en login" });
+    return res.json({
+      ok: true,
+      message: "Bienvenido",
+      user: {
+        username: user.username,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    console.log("LOGIN ERROR:", error);
+    return res.json({ ok: false, message: "Error en login" });
   }
 });
 
@@ -156,43 +230,33 @@ app.post("/recover/send", async (req, res) => {
     }
 
     const users = readUsers();
-    const user = users.find(u => u.email === email);
+    const user = users.find(
+      (u) => u.email.toLowerCase() === String(email).toLowerCase()
+    );
 
     if (!user) {
       return res.json({ ok: false, message: "Correo no encontrado" });
     }
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const code = generateCode();
 
     pendingRecovery[email] = {
       code,
-      expires: Date.now() + 300000
+      expires: Date.now() + 5 * 60 * 1000
     };
 
-    await transporter.sendMail({
-      from: '"LX XITERS" <cuentaoso66@gmail.com>',
-      to: email,
-      subject: "LX XITERS - Recuperar contraseña",
-      html: `
-      <div style="background:#050505;padding:30px;font-family:Arial;">
-        <div style="max-width:520px;margin:auto;background:#111;border-radius:24px;padding:30px;text-align:center;">
-          <img src="https://i.imgur.com/pinFJ1F.jpeg"
-               style="width:100px;height:100px;object-fit:contain;margin-bottom:20px;filter:drop-shadow(0 0 10px gold);">
-          <h1 style="color:#FFD700;font-size:32px;">LX XITERS</h1>
-          <p style="color:#ccc;">Código para recuperar contraseña</p>
-          <div style="background:linear-gradient(90deg,#FFD700,#FFC300);color:#000;padding:15px 25px;border-radius:15px;font-size:32px;font-weight:bold;letter-spacing:6px;margin-top:15px;">
-            ${code}
-          </div>
-          <p style="color:#888;margin-top:15px;">Este código vence en 5 minutos</p>
-        </div>
-      </div>
-      `
-    });
+    await sendMailCode(
+      email,
+      "LX XITERS - Recuperar contraseña",
+      "Código para recuperar contraseña",
+      "Este código vence en 5 minutos",
+      code
+    );
 
-    res.json({ ok: true, message: "Código enviado al correo" });
-  } catch (e) {
-    console.log("RECOVER SEND ERROR:", e);
-    res.json({ ok: false, message: "Error al enviar correo" });
+    return res.json({ ok: true, message: "Código enviado al correo" });
+  } catch (error) {
+    console.log("RECOVER SEND ERROR:", error);
+    return res.json({ ok: false, message: "Error al enviar correo" });
   }
 });
 
@@ -220,7 +284,9 @@ app.post("/recover/reset", async (req, res) => {
     }
 
     const users = readUsers();
-    const index = users.findIndex(u => u.email === email);
+    const index = users.findIndex(
+      (u) => u.email.toLowerCase() === String(email).toLowerCase()
+    );
 
     if (index === -1) {
       return res.json({ ok: false, message: "Usuario no encontrado" });
@@ -230,12 +296,13 @@ app.post("/recover/reset", async (req, res) => {
     writeUsers(users);
     delete pendingRecovery[email];
 
-    res.json({ ok: true, message: "Contraseña actualizada" });
-  } catch (e) {
-    console.log("RECOVER RESET ERROR:", e);
-    res.json({ ok: false, message: "Error al cambiar contraseña" });
+    return res.json({ ok: true, message: "Contraseña actualizada" });
+  } catch (error) {
+    console.log("RECOVER RESET ERROR:", error);
+    return res.json({ ok: false, message: "Error al cambiar contraseña" });
   }
 });
+
 app.listen(PORT, () => {
-  console.log("Servidor corriendo en http://localhost:" + PORT);
+  console.log("Servidor corriendo en puerto " + PORT);
 });
