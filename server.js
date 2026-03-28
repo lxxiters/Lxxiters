@@ -1,4 +1,4 @@
-ñconst express = require("express");
+const express = require("express");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
 const fs = require("fs");
@@ -21,12 +21,15 @@ const USERS_FILE = path.join(__dirname, "users.json");
 const pendingUsers = {};
 const pendingRecovery = {};
 
+function ensureUsersFile() {
+  if (!fs.existsSync(USERS_FILE)) {
+    fs.writeFileSync(USERS_FILE, "[]", "utf8");
+  }
+}
+
 function readUsers() {
   try {
-    if (!fs.existsSync(USERS_FILE)) {
-      fs.writeFileSync(USERS_FILE, "[]", "utf8");
-    }
-
+    ensureUsersFile();
     const raw = fs.readFileSync(USERS_FILE, "utf8").trim();
     return JSON.parse(raw || "[]");
   } catch (error) {
@@ -36,18 +39,14 @@ function readUsers() {
 }
 
 function writeUsers(users) {
-  try {
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), "utf8");
-  } catch (error) {
-    console.log("WRITE USERS ERROR:", error);
-    throw error;
-  }
+  ensureUsersFile();
+  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), "utf8");
 }
 
 const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
 
-console.log("EMAIL_USER:", EMAIL_USER || "NO");
+console.log("EMAIL_USER:", EMAIL_USER ? EMAIL_USER : "NO");
 console.log("EMAIL_PASS:", EMAIL_PASS ? "OK" : "NO");
 
 const transporter = nodemailer.createTransport({
@@ -72,34 +71,34 @@ function generateCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-function buildMailTemplate(title, subtitle, code) {
+function buildMailTemplate(title, code) {
   return `
   <div style="background:#050505;padding:30px;font-family:Arial,sans-serif;">
     <div style="max-width:520px;margin:auto;background:#111;border-radius:24px;padding:30px;text-align:center;border:1px solid rgba(255,215,0,.18);">
       <img src="https://i.imgur.com/pinFJ1F.jpeg"
            alt="LX XITERS"
-           style="width:100px;height:100px;object-fit:contain;margin-bottom:20px;border-radius:50%;filter:drop-shadow(0 0 10px gold);">
+           style="width:100px;height:100px;object-fit:contain;margin-bottom:20px;border-radius:50%;">
       <h1 style="color:#FFD700;font-size:32px;margin:0 0 10px 0;">LX XITERS</h1>
       <p style="color:#ccc;font-size:16px;margin:0 0 18px 0;">${title}</p>
       <div style="background:linear-gradient(90deg,#FFD700,#FFC300);color:#000;padding:15px 25px;border-radius:15px;font-size:32px;font-weight:bold;letter-spacing:6px;margin-top:15px;">
         ${code}
       </div>
-      <p style="color:#888;margin-top:18px;">${subtitle}</p>
+      <p style="color:#888;margin-top:18px;">Este código vence en 5 minutos</p>
     </div>
   </div>
   `;
 }
 
-async function sendMailCode(to, subject, title, subtitle, code) {
+async function sendMailCode(to, subject, title, code) {
   if (!EMAIL_USER || !EMAIL_PASS) {
-    throw new Error("Faltan EMAIL_USER o EMAIL_PASS en Render");
+    throw new Error("Faltan EMAIL_USER o EMAIL_PASS");
   }
 
   return transporter.sendMail({
     from: `"LX XITERS" <${EMAIL_USER}>`,
     to,
     subject,
-    html: buildMailTemplate(title, subtitle, code)
+    html: buildMailTemplate(title, code)
   });
 }
 
@@ -142,7 +141,6 @@ app.post("/register/send-code", async (req, res) => {
       email,
       "LX XITERS - Código de verificación",
       "Código de verificación",
-      "Este código vence en 5 minutos",
       code
     );
 
@@ -252,7 +250,6 @@ app.post("/recover/send", async (req, res) => {
       email,
       "LX XITERS - Recuperar contraseña",
       "Código para recuperar contraseña",
-      "Este código vence en 5 minutos",
       code
     );
 
